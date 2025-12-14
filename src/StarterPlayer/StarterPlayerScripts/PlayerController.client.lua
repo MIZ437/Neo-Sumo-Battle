@@ -406,8 +406,8 @@ local function skill()
 end
 
 UserInputService.InputBegan:Connect(function(input, gp)
-    -- ESCキーは常に処理（一時停止用）
-    if input.KeyCode == Enum.KeyCode.Escape then
+    -- Pキーは常に処理（一時停止用）
+    if input.KeyCode == Enum.KeyCode.P then
         togglePause()
         return
     end

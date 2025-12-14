@@ -32,11 +32,6 @@ local hpBar = safeFind(hpBarFrame, "Fill")
 local staminaBarFrame = safeFind(playerStatsFrame, "StaminaBar")
 local staminaBar = safeFind(staminaBarFrame, "Fill")
 
-local skillFrame = safeFind(mainFrame, "SkillFrame")
-local spBarFrame = safeFind(skillFrame, "SPBar")
-local spBar = safeFind(spBarFrame, "Fill")
-local skillBtn = safeFind(skillFrame, "SkillButton")
-
 local enemyHPFrame = safeFind(mainFrame, "EnemyHPFrame")
 local enemyHPBarFrame = safeFind(enemyHPFrame, "HPBar")
 local enemyHPBar = safeFind(enemyHPBarFrame, "Fill") or enemyHPBarFrame
@@ -71,7 +66,6 @@ StartBattle.OnClientEvent:Connect(function(data)
     if enemyHPBar then enemyHPBar.Size = UDim2.new(1, 0, 1, 0) end
     if hpBar then hpBar.Size = UDim2.new(1, 0, 1, 0) end
     if staminaBar then staminaBar.Size = UDim2.new(1, 0, 1, 0) end
-    if spBar then spBar.Size = UDim2.new(0, 0, 1, 0) end
     if timerLabel then timerLabel.Text = "2:00" end
 end)
 
@@ -85,10 +79,6 @@ UpdateStats.OnClientEvent:Connect(function(stats, state)
     if staminaBar then
         local stR = stats.Stamina / stats.MaxStamina
         TweenService:Create(staminaBar, tw, {Size = UDim2.new(stR, 0, 1, 0)}):Play()
-    end
-    if spBar then
-        local spR = stats.SP / stats.MaxSP
-        TweenService:Create(spBar, tw, {Size = UDim2.new(spR, 0, 1, 0)}):Play()
     end
 end)
 

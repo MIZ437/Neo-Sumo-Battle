@@ -10,6 +10,8 @@ local playerGui = player:WaitForChild("PlayerGui")
 local Events = ReplicatedStorage:WaitForChild("Events")
 local DamageDealt = Events:WaitForChild("DamageDealt")
 local PlayerDamaged = Events:WaitForChild("PlayerDamaged", 5)
+local StartBattle = Events:WaitForChild("StartBattle")
+local Countdown = Events:WaitForChild("Countdown")
 
 local gameSounds = Workspace:WaitForChild("GameSounds", 5)
 local damageSound = gameSounds and gameSounds:FindFirstChild("DamageSound")
@@ -221,6 +223,15 @@ local function resetFallState()
 end
 
 player.CharacterAdded:Connect(resetFallState)
+
+-- バトル開始時にGAME OVERをリセット
+StartBattle.OnClientEvent:Connect(function()
+    resetFallState()
+end)
+
+Countdown.OnClientEvent:Connect(function()
+    resetFallState()
+end)
 
 RunService.Heartbeat:Connect(function()
     local char = player.Character
