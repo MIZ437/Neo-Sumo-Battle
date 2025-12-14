@@ -139,10 +139,25 @@ function EnemyAI:Attack(target)
 	local direction = (targetRoot.Position - self.RootPart.Position).Unit
 	direction = Vector3.new(direction.X, 0.3, direction.Z).Unit
 
-	-- 攻撃力（ステージに応じて上昇）
+	-- 攻撃力（ステージに応じて上昇、バランス調整済み）
 	local stage = self.EnemyData and self.EnemyData:FindFirstChild("Stage") and self.EnemyData.Stage.Value or 1
-	local damage = GameConfig.Push.Damage * (1 + stage * 0.1)
-	local knockback = GameConfig.Push.Knockback * (1 + stage * 0.05)
+	-- ダメージとノックバックを低減
+	local damage = GameConfig.Push.Damage * (0.6 + stage * 0.05)
+	local knockback = GameConfig.Push.Knockback * (0.5 + stage * 0.03)
+
+	-- プレイヤーのガード状態をチェック
+	local targetPlayer = game:GetService("Players"):GetPlayerFromCharacter(target)
+	if targetPlayer then
+		local Modules = game:GetService("ReplicatedStorage"):WaitForChild("Modules")
+		local PlayerData = require(Modules:WaitForChild("PlayerData"))
+		local data = PlayerData.Get(targetPlayer)
+		if data and data.State and data.State.IsGuarding then
+			-- ガード中はダメージ70%軽減、ノックバック50%軽減
+			damage = damage * 0.3
+			knockback = knockback * 0.5
+			print("Player GUARDING! Damage reduced")
+		end
+	end
 
 	-- プレイヤーにダメージ＆ノックバック適用
 	DamageDealt:FireAllClients(target, damage, direction * knockback)

@@ -52,14 +52,16 @@ PlayerAction.OnServerEvent:Connect(function(player, action, ...)
                 if enemies then
                     for _, enemy in ipairs(enemies:GetChildren()) do
                         local er = enemy:FindFirstChild("HumanoidRootPart")
-                        if er and (root.Position - er.Position).Magnitude <= 12 then
+                        -- 半径を6に縮小
+                        if er and (root.Position - er.Position).Magnitude <= 6 then
                             local dir = (er.Position - root.Position).Unit
-                            dir = Vector3.new(dir.X, 0.5, dir.Z).Unit
+                            dir = Vector3.new(dir.X, 0.3, dir.Z).Unit
                             local bv = Instance.new("BodyVelocity")
-                            bv.MaxForce = Vector3.new(99999,99999,99999)
-                            bv.Velocity = dir * 80
+                            bv.MaxForce = Vector3.new(50000, 50000, 50000)
+                            -- ノックバックを40に縮小
+                            bv.Velocity = dir * 40
                             bv.Parent = er
-                            task.delay(0.3, function() if bv.Parent then bv:Destroy() end end)
+                            task.delay(0.25, function() if bv.Parent then bv:Destroy() end end)
                         end
                     end
                 end
