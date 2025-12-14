@@ -18,6 +18,7 @@ function PlayerData.new(player)
 	self.Crystals = 0
 	self.MaxStageCleared = 0
 	self.EquippedSkill = 1
+	self.TutorialCompleted = false  -- チュートリアル完了フラグ
 
 	-- 強化レベル
 	self.Upgrades = {

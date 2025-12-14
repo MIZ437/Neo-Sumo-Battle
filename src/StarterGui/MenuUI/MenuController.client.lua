@@ -111,6 +111,19 @@ for i = 1, 10 do
     end
 end
 stageSelect:WaitForChild("BackButton").MouseButton1Click:Connect(function() showScreen("Home") end)
+
+-- ステージ選択画面のスキル選択・ショップボタン
+local stageSkillBtn = stageSelect:FindFirstChild("SkillSelectBtn")
+local stageShopBtn = stageSelect:FindFirstChild("ShopBtn")
+
+if stageSkillBtn then
+    stageSkillBtn.MouseButton1Click:Connect(function() showScreen("SkillSelect") end)
+end
+
+if stageShopBtn then
+    stageShopBtn.MouseButton1Click:Connect(function() showScreen("Shop"); updateShopUI() end)
+end
+
 skillSelect:WaitForChild("BackButton").MouseButton1Click:Connect(function() showScreen("Home") end)
 shopScreen:WaitForChild("BackButton").MouseButton1Click:Connect(function() showScreen("Home"); updateHomeUI() end)
 

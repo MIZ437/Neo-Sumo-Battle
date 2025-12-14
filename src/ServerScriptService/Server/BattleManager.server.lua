@@ -22,10 +22,16 @@ local UpdateEnemyHP = Events:WaitForChild("UpdateEnemyHP")
 local Countdown = Events:WaitForChild("Countdown")
 local BattleReady = Events:WaitForChild("BattleReady")
 
+-- チュートリアル用イベント
+local StartTutorial = Events:WaitForChild("StartTutorial")
+local TutorialComplete = Events:WaitForChild("TutorialComplete")
+local SkipTutorial = Events:WaitForChild("SkipTutorial")
+
 local Arena = Workspace:WaitForChild("Arena")
 local EnemiesFolder = Workspace:WaitForChild("Enemies")
 
 local activeBattles = {}
+local pendingTutorials = {} -- チュートリアル待ちのプレイヤー
 
 local function clearEnemies()
     for _, e in ipairs(EnemiesFolder:GetChildren()) do e:Destroy() end
@@ -165,6 +171,34 @@ local function startBattle(player, stage)
     end)
 end
 
+-- チュートリアル完了時の処理
+TutorialComplete.OnServerEvent:Connect(function(player)
+    local data = PlayerData.Get(player)
+    if data then
+        data.TutorialCompleted = true
+    end
+
+    local pendingStage = pendingTutorials[player]
+    if pendingStage then
+        pendingTutorials[player] = nil
+        startBattle(player, pendingStage)
+    end
+end)
+
+-- チュートリアルスキップ時の処理
+SkipTutorial.OnServerEvent:Connect(function(player)
+    local data = PlayerData.Get(player)
+    if data then
+        data.TutorialCompleted = true
+    end
+
+    local pendingStage = pendingTutorials[player]
+    if pendingStage then
+        pendingTutorials[player] = nil
+        startBattle(player, pendingStage)
+    end
+end)
+
 DamageDealt.OnServerEvent:Connect(function(player, target, damage, knockback)
     local battle = activeBattles[player]
     if not battle or not battle.active then return end
@@ -180,6 +214,14 @@ SelectStage.OnServerEvent:Connect(function(player, stage)
     local data = PlayerData.Get(player)
     if not data then data = PlayerData.new(player) end
     if stage > data.MaxStageCleared + 1 then return end
+
+    -- ステージ1でチュートリアル未完了の場合
+    if stage == 1 and not data.TutorialCompleted then
+        pendingTutorials[player] = stage
+        StartTutorial:FireClient(player)
+        return
+    end
+
     startBattle(player, stage)
 end)
 
@@ -198,4 +240,4 @@ for _, p in ipairs(Players:GetPlayers()) do
     if not PlayerData.Get(p) then PlayerData.new(p) end
 end
 
-print("BattleManager READY")
+print("BattleManager READY (with Tutorial)")
