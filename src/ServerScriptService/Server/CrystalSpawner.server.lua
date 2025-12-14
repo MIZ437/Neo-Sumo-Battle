@@ -21,27 +21,64 @@ local activeCrystals = {}
 local function createCrystal(position)
 	local crystal = Instance.new("Part")
 	crystal.Name = "FieldCrystal"
-	crystal.Size = Vector3.new(1, 2, 1)
+	crystal.Size = Vector3.new(3, 5, 3)
 	crystal.Position = position
 	crystal.Anchored = true
 	crystal.CanCollide = false
 	crystal.Material = Enum.Material.Neon
-	crystal.Color = Color3.fromRGB(150, 100, 255)
+	crystal.Color = Color3.fromRGB(100, 200, 255)
 	crystal.Parent = Arena
 
-	-- ダイヤ形状（メッシュ）
+	-- ダイヤ形状（メッシュ）- 大きく
 	local mesh = Instance.new("SpecialMesh")
 	mesh.MeshType = Enum.MeshType.FileMesh
 	mesh.MeshId = "rbxassetid://9756362" -- ダイヤ形状
-	mesh.Scale = Vector3.new(0.5, 0.5, 0.5)
+	mesh.Scale = Vector3.new(2, 3, 2)
 	mesh.Parent = crystal
 
-	-- 光るエフェクト
+	-- メインライト（明るく）
 	local light = Instance.new("PointLight")
-	light.Color = Color3.fromRGB(150, 100, 255)
-	light.Brightness = 2
-	light.Range = 8
+	light.Color = Color3.fromRGB(100, 200, 255)
+	light.Brightness = 5
+	light.Range = 20
 	light.Parent = crystal
+
+	-- キラキラパーティクル
+	local sparkle = Instance.new("ParticleEmitter")
+	sparkle.Name = "Sparkle"
+	sparkle.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 200, 255)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 100, 255))
+	})
+	sparkle.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.5),
+		NumberSequenceKeypoint.new(0.5, 1),
+		NumberSequenceKeypoint.new(1, 0)
+	})
+	sparkle.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.5),
+		NumberSequenceKeypoint.new(1, 1)
+	})
+	sparkle.Lifetime = NumberRange.new(1, 2)
+	sparkle.Rate = 20
+	sparkle.Speed = NumberRange.new(2, 5)
+	sparkle.SpreadAngle = Vector2.new(360, 360)
+	sparkle.LightEmission = 1
+	sparkle.LightInfluence = 0
+	sparkle.Parent = crystal
+
+	-- 上昇する光の柱エフェクト
+	local beam = Instance.new("Part")
+	beam.Name = "LightBeam"
+	beam.Size = Vector3.new(0.5, 30, 0.5)
+	beam.Position = position + Vector3.new(0, 15, 0)
+	beam.Anchored = true
+	beam.CanCollide = false
+	beam.Material = Enum.Material.Neon
+	beam.Color = Color3.fromRGB(100, 200, 255)
+	beam.Transparency = 0.7
+	beam.Parent = crystal
 
 	-- 回転アニメーション
 	local rotationValue = Instance.new("NumberValue")
@@ -83,26 +120,67 @@ local function createCrystal(position)
 				print("💎 " .. player.Name .. " がクリスタルを獲得! (合計: " .. data.Crystals .. ")")
 			end
 
-			-- 獲得エフェクト
+			-- 獲得エフェクト（豪華版）
+			local effectPos = crystal.Position
+
+			-- メイン爆発エフェクト
 			local effect = Instance.new("Part")
 			effect.Shape = Enum.PartType.Ball
-			effect.Size = Vector3.new(1, 1, 1)
-			effect.Position = crystal.Position
+			effect.Size = Vector3.new(3, 3, 3)
+			effect.Position = effectPos
 			effect.Anchored = true
 			effect.CanCollide = false
 			effect.Material = Enum.Material.Neon
-			effect.Color = Color3.fromRGB(200, 150, 255)
+			effect.Color = Color3.fromRGB(100, 200, 255)
 			effect.Transparency = 0
 			effect.Parent = Workspace
 
+			-- 輝くリング
+			local ring = Instance.new("Part")
+			ring.Shape = Enum.PartType.Cylinder
+			ring.Size = Vector3.new(0.5, 3, 3)
+			ring.CFrame = CFrame.new(effectPos) * CFrame.Angles(0, 0, math.rad(90))
+			ring.Anchored = true
+			ring.CanCollide = false
+			ring.Material = Enum.Material.Neon
+			ring.Color = Color3.fromRGB(255, 255, 255)
+			ring.Transparency = 0.3
+			ring.Parent = Workspace
+
 			task.spawn(function()
-				for i = 1, 10 do
-					effect.Size = effect.Size + Vector3.new(0.5, 0.5, 0.5)
-					effect.Transparency = effect.Transparency + 0.1
-					task.wait(0.03)
+				for i = 1, 15 do
+					effect.Size = effect.Size + Vector3.new(1.5, 1.5, 1.5)
+					effect.Transparency = effect.Transparency + 0.07
+					ring.Size = ring.Size + Vector3.new(0, 2, 2)
+					ring.Transparency = ring.Transparency + 0.05
+					task.wait(0.02)
 				end
 				effect:Destroy()
+				ring:Destroy()
 			end)
+
+			-- 上昇する光パーティクル
+			for j = 1, 8 do
+				local particle = Instance.new("Part")
+				particle.Shape = Enum.PartType.Ball
+				particle.Size = Vector3.new(0.5, 0.5, 0.5)
+				particle.Position = effectPos + Vector3.new(math.random(-2, 2), 0, math.random(-2, 2))
+				particle.Anchored = true
+				particle.CanCollide = false
+				particle.Material = Enum.Material.Neon
+				particle.Color = Color3.fromRGB(200, 255, 255)
+				particle.Parent = Workspace
+
+				task.spawn(function()
+					for k = 1, 20 do
+						particle.Position = particle.Position + Vector3.new(0, 0.5, 0)
+						particle.Size = particle.Size * 0.95
+						particle.Transparency = particle.Transparency + 0.05
+						task.wait(0.02)
+					end
+					particle:Destroy()
+				end)
+			end
 
 			-- クリスタル削除
 			local index = table.find(activeCrystals, crystal)
