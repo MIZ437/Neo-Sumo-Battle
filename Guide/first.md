@@ -1,0 +1,1 @@
+oblox StudioとClaude Code連携ガイド：MCP導入ステップ.md" を読み取ってVSCodeとRoblox StudioをMCP連携し、VSCodeでゲーム編集ができるようにして。

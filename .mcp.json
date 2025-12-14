@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "rbx-studio": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "C:\\Users\\ashim\\Downloads\\rbx-studio-mcp.exe", "--stdio"],
+      "env": {}
+    }
+  }
+}
