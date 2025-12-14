@@ -9,10 +9,8 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local Events = ReplicatedStorage:WaitForChild("Events")
 local DamageDealt = Events:WaitForChild("DamageDealt")
-
 local PlayerDamaged = Events:WaitForChild("PlayerDamaged", 5)
 
--- サウンド取得
 local gameSounds = Workspace:WaitForChild("GameSounds", 5)
 local damageSound = gameSounds and gameSounds:FindFirstChild("DamageSound")
 local hitSound = gameSounds and gameSounds:FindFirstChild("HitSound")
@@ -21,9 +19,6 @@ local hitSound = gameSounds and gameSounds:FindFirstChild("HitSound")
 local function shakeCamera(intensity, duration)
     local cam = workspace.CurrentCamera
     if not cam then return end
-
-    local originalCFrame = cam.CFrame
-
     task.spawn(function()
         local elapsed = 0
         while elapsed < duration do
@@ -36,11 +31,8 @@ local function shakeCamera(intensity, duration)
     end)
 end
 
--- ダメージフラッシュエフェクト（強化版）
-local function showDamageFlash(intensity)
-    local playerGui = player:WaitForChild("PlayerGui")
-
-    -- 赤フラッシュ
+-- ダメージフラッシュ
+local function showDamageFlash()
     local damageFlash = Instance.new("Frame")
     damageFlash.Name = "DamageFlash"
     damageFlash.Size = UDim2.new(1, 0, 1, 0)
@@ -50,41 +42,13 @@ local function showDamageFlash(intensity)
     damageFlash.ZIndex = 100
     damageFlash.Parent = playerGui
 
-    local tween = TweenService:Create(damageFlash, TweenInfo.new(0.3), {
-        BackgroundTransparency = 1
-    })
+    local tween = TweenService:Create(damageFlash, TweenInfo.new(0.3), {BackgroundTransparency = 1})
     tween:Play()
-    tween.Completed:Connect(function()
-        damageFlash:Destroy()
-    end)
-
-    -- ビネット効果（縁を暗く）
-    local vignette = Instance.new("ImageLabel")
-    vignette.Name = "DamageVignette"
-    vignette.Size = UDim2.new(1, 0, 1, 0)
-    vignette.BackgroundTransparency = 1
-    vignette.Image = "rbxassetid://6842543624" -- ビネット画像
-    vignette.ImageColor3 = Color3.fromRGB(255, 50, 50)
-    vignette.ImageTransparency = 0.3
-    vignette.ZIndex = 99
-    vignette.Parent = playerGui
-
-    local vignetteTween = TweenService:Create(vignette, TweenInfo.new(0.4), {
-        ImageTransparency = 1
-    })
-    vignetteTween:Play()
-    vignetteTween.Completed:Connect(function()
-        vignette:Destroy()
-    end)
+    tween.Completed:Connect(function() damageFlash:Destroy() end)
 end
 
 -- ダメージ数値表示
 local function showDamageNumber(position, damage, isPlayer)
-    local billboard = Instance.new("BillboardGui")
-    billboard.Size = UDim2.new(0, 100, 0, 50)
-    billboard.StudsOffset = Vector3.new(0, 2, 0)
-    billboard.AlwaysOnTop = true
-
     local part = Instance.new("Part")
     part.Size = Vector3.new(0.1, 0.1, 0.1)
     part.Position = position + Vector3.new(math.random(-10, 10) / 10, 0, math.random(-10, 10) / 10)
@@ -93,6 +57,10 @@ local function showDamageNumber(position, damage, isPlayer)
     part.Transparency = 1
     part.Parent = workspace
 
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 100, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 2, 0)
+    billboard.AlwaysOnTop = true
     billboard.Adornee = part
     billboard.Parent = part
 
@@ -104,55 +72,16 @@ local function showDamageNumber(position, damage, isPlayer)
     damageLabel.TextSize = isPlayer and 32 or 28
     damageLabel.Font = Enum.Font.GothamBold
     damageLabel.TextStrokeTransparency = 0.3
-    damageLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     damageLabel.Parent = billboard
 
     task.spawn(function()
         for i = 1, 20 do
             part.Position = part.Position + Vector3.new(0, 0.12, 0)
             damageLabel.TextTransparency = damageLabel.TextTransparency + 0.05
-            damageLabel.TextStrokeTransparency = damageLabel.TextStrokeTransparency + 0.05
             task.wait(0.03)
         end
         part:Destroy()
     end)
-end
-
--- 被ダメージエフェクト（パーティクル）
-local function showDamageParticles(position)
-    for i = 1, 8 do
-        local particle = Instance.new("Part")
-        particle.Shape = Enum.PartType.Ball
-        particle.Size = Vector3.new(0.3, 0.3, 0.3)
-        particle.Position = position
-        particle.Anchored = false
-        particle.CanCollide = false
-        particle.Material = Enum.Material.Neon
-        particle.Color = Color3.fromRGB(255, 100, 100)
-        particle.Parent = workspace
-
-        local direction = Vector3.new(
-            math.random(-100, 100) / 100,
-            math.random(50, 150) / 100,
-            math.random(-100, 100) / 100
-        )
-
-        local bv = Instance.new("BodyVelocity")
-        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bv.Velocity = direction * 20
-        bv.Parent = particle
-
-        task.spawn(function()
-            task.wait(0.1)
-            if bv.Parent then bv:Destroy() end
-            for j = 1, 10 do
-                particle.Transparency = particle.Transparency + 0.1
-                particle.Size = particle.Size * 0.9
-                task.wait(0.03)
-            end
-            particle:Destroy()
-        end)
-    end
 end
 
 -- ダメージ受信
@@ -160,57 +89,35 @@ DamageDealt.OnClientEvent:Connect(function(target, damage, knockback)
     local character = player.Character
     if not character then return end
 
-    -- 自分が対象の場合
     if target == character then
         local humanoid = character:FindFirstChild("Humanoid")
         local rootPart = character:FindFirstChild("HumanoidRootPart")
-
         if humanoid and rootPart then
-            -- ダメージ適用
             humanoid:TakeDamage(damage)
-
-            -- 被ダメージサウンド
             if damageSound then
                 local clone = damageSound:Clone()
                 clone.Parent = workspace
                 clone:Play()
                 task.delay(1, function() clone:Destroy() end)
             end
-
-            -- 被ダメージをサーバーに通知
-            if PlayerDamaged then
-                PlayerDamaged:FireServer(damage)
-            end
-
-            -- エフェクト
-            showDamageFlash(damage)
+            if PlayerDamaged then PlayerDamaged:FireServer(damage) end
+            showDamageFlash()
             showDamageNumber(rootPart.Position, damage, true)
-            showDamageParticles(rootPart.Position)
             shakeCamera(0.3, 0.15)
-
-            -- ノックバック適用
             if knockback then
-                local bodyVelocity = Instance.new("BodyVelocity")
-                bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                bodyVelocity.Velocity = knockback
-                bodyVelocity.Parent = rootPart
-
-                task.delay(0.2, function()
-                    if bodyVelocity and bodyVelocity.Parent then
-                        bodyVelocity:Destroy()
-                    end
-                end)
+                local bv = Instance.new("BodyVelocity")
+                bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                bv.Velocity = knockback
+                bv.Parent = rootPart
+                task.delay(0.2, function() if bv.Parent then bv:Destroy() end end)
             end
         end
     end
 
-    -- 敵がダメージを受けた場合
     if target and target:FindFirstChild("EnemyData") then
         local enemyRoot = target:FindFirstChild("HumanoidRootPart")
         if enemyRoot then
             showDamageNumber(enemyRoot.Position, damage, false)
-
-            -- ヒットサウンド
             if hitSound then
                 local clone = hitSound:Clone()
                 clone.Parent = workspace
@@ -221,31 +128,87 @@ DamageDealt.OnClientEvent:Connect(function(target, damage, knockback)
     end
 end)
 
--- 落下検出とGAME OVER表示
+-- 落下検出とおどろおどろしいGAME OVER表示
 local fallingStartTime = nil
 local gameOverShown = false
 local gameOverGui = nil
 
-local function createGameOverLabel()
+local function createDramaticGameOver()
     if gameOverGui and gameOverGui.Parent then return end
 
     gameOverGui = Instance.new("ScreenGui")
     gameOverGui.Name = "GameOverGui"
     gameOverGui.ResetOnSpawn = false
+    gameOverGui.DisplayOrder = 100
     gameOverGui.Parent = playerGui
 
+    -- 暗転背景
+    local darkBg = Instance.new("Frame")
+    darkBg.Name = "DarkBackground"
+    darkBg.Size = UDim2.new(1, 0, 1, 0)
+    darkBg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    darkBg.BackgroundTransparency = 1
+    darkBg.BorderSizePixel = 0
+    darkBg.Parent = gameOverGui
+
+    -- GAME OVERテキスト
     local gameOverLabel = Instance.new("TextLabel")
     gameOverLabel.Name = "GameOverLabel"
-    gameOverLabel.Size = UDim2.new(1, 0, 0.3, 0)
-    gameOverLabel.Position = UDim2.new(0, 0, 0.35, 0)
+    gameOverLabel.Size = UDim2.new(1, 0, 0.4, 0)
+    gameOverLabel.Position = UDim2.new(0, 0, 0.3, 0)
     gameOverLabel.BackgroundTransparency = 1
     gameOverLabel.Text = "GAME OVER"
-    gameOverLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-    gameOverLabel.TextSize = 72
-    gameOverLabel.Font = Enum.Font.GothamBold
+    gameOverLabel.TextColor3 = Color3.fromRGB(150, 0, 0)
+    gameOverLabel.TextSize = 50
+    gameOverLabel.Font = Enum.Font.GothamBlack
     gameOverLabel.TextStrokeTransparency = 0
-    gameOverLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    gameOverLabel.TextStrokeColor3 = Color3.fromRGB(50, 0, 0)
+    gameOverLabel.TextTransparency = 1
     gameOverLabel.Parent = gameOverGui
+
+    -- 不気味なサウンド再生
+    local gameOverSound = Instance.new("Sound")
+    gameOverSound.SoundId = "rbxassetid://1837774679"
+    gameOverSound.Volume = 1.5
+    gameOverSound.Parent = gameOverGui
+    gameOverSound:Play()
+
+    -- 暗転アニメーション
+    TweenService:Create(darkBg, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+        BackgroundTransparency = 0.7
+    }):Play()
+
+    -- テキストフェードイン + 拡大
+    task.delay(0.3, function()
+        TweenService:Create(gameOverLabel, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            TextTransparency = 0,
+            TextSize = 120
+        }):Play()
+    end)
+
+    -- テキスト揺れ効果
+    task.spawn(function()
+        task.wait(1.2)
+        while gameOverGui and gameOverGui.Parent do
+            local shakeX = math.random(-3, 3)
+            local shakeY = math.random(-2, 2)
+            gameOverLabel.Position = UDim2.new(0, shakeX, 0.3, shakeY)
+            local intensity = math.random(100, 180)
+            gameOverLabel.TextColor3 = Color3.fromRGB(intensity, 0, 0)
+            task.wait(0.05)
+        end
+    end)
+
+    -- 赤いビネット効果
+    local vignette = Instance.new("ImageLabel")
+    vignette.Name = "RedVignette"
+    vignette.Size = UDim2.new(1, 0, 1, 0)
+    vignette.BackgroundTransparency = 1
+    vignette.Image = "rbxassetid://6842543624"
+    vignette.ImageColor3 = Color3.fromRGB(100, 0, 0)
+    vignette.ImageTransparency = 0.5
+    vignette.ZIndex = 2
+    vignette.Parent = gameOverGui
 end
 
 local function resetFallState()
@@ -257,10 +220,8 @@ local function resetFallState()
     end
 end
 
--- キャラクター追加時にリセット
 player.CharacterAdded:Connect(resetFallState)
 
--- 落下検出
 RunService.Heartbeat:Connect(function()
     local char = player.Character
     if not char then return end
@@ -271,7 +232,7 @@ RunService.Heartbeat:Connect(function()
         if not fallingStartTime then
             fallingStartTime = tick()
         elseif tick() - fallingStartTime >= 1 and not gameOverShown then
-            createGameOverLabel()
+            createDramaticGameOver()
             gameOverShown = true
         end
     else
@@ -281,4 +242,4 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("DamageHandler READY (with enhanced effects + fall detection)")
+print("DamageHandler READY (with dramatic GAME OVER)")

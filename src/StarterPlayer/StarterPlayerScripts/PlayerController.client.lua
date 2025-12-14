@@ -6,6 +6,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 local Events = ReplicatedStorage:WaitForChild("Events")
 local PlayerAction = Events:WaitForChild("PlayerAction")
 local DamageDealt = Events:WaitForChild("DamageDealt")
@@ -13,6 +14,14 @@ local BattleReady = Events:WaitForChild("BattleReady")
 local Countdown = Events:WaitForChild("Countdown")
 local StartBattle = Events:WaitForChild("StartBattle")
 local StartTutorial = Events:WaitForChild("StartTutorial")
+local EndBattle = Events:WaitForChild("EndBattle")
+
+-- UI参照
+local battleUI = playerGui:WaitForChild("BattleUI")
+local mainFrame = battleUI:WaitForChild("MainFrame")
+local controlsOverlay = mainFrame:FindFirstChild("ControlsOverlay")
+local pauseFrame = mainFrame:FindFirstChild("PauseFrame")
+local menuUI = playerGui:WaitForChild("MenuUI")
 
 local gameSounds = Workspace:WaitForChild("GameSounds", 5)
 local hitSound = gameSounds and gameSounds:FindFirstChild("HitSound")
@@ -21,6 +30,8 @@ local skillSound = gameSounds and gameSounds:FindFirstChild("SkillSound")
 local canAct = false
 local tutorialMode = false
 local isGuarding = false
+local isPaused = false
+local inBattle = false
 local lastPushTime = 0
 local cameraRot = 0
 local cameraPitch = 0
@@ -31,7 +42,73 @@ local guardEffect = nil
 local guardConnection = nil
 
 local function canPerformAction()
+    if isPaused then return false end
     return canAct or tutorialMode
+end
+
+-- 一時停止機能
+local function togglePause()
+    if not inBattle then return end
+    isPaused = not isPaused
+
+    if pauseFrame then
+        pauseFrame.Visible = isPaused
+    end
+
+    -- ゲームを一時停止/再開
+    local char = player.Character
+    if char then
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            if isPaused then
+                originalWalkSpeed = humanoid.WalkSpeed > 0 and humanoid.WalkSpeed or 16
+                humanoid.WalkSpeed = 0
+            else
+                humanoid.WalkSpeed = originalWalkSpeed
+            end
+        end
+    end
+end
+
+local function resumeGame()
+    if isPaused then
+        togglePause()
+    end
+end
+
+local function goToTitle()
+    isPaused = false
+    inBattle = false
+    canAct = false
+
+    if pauseFrame then
+        pauseFrame.Visible = false
+    end
+
+    mainFrame.Visible = false
+    menuUI.Enabled = true
+
+    -- タイトル画面に戻る
+    local titleScreen = menuUI:FindFirstChild("TitleScreen")
+    local homeScreen = menuUI:FindFirstChild("HomeScreen")
+    local stageSelect = menuUI:FindFirstChild("StageSelectScreen")
+    local skillSelect = menuUI:FindFirstChild("SkillSelectScreen")
+    local resultScreen = menuUI:FindFirstChild("ResultScreen")
+    local shopScreen = menuUI:FindFirstChild("ShopScreen")
+
+    if titleScreen then titleScreen.Visible = true end
+    if homeScreen then homeScreen.Visible = false end
+    if stageSelect then stageSelect.Visible = false end
+    if skillSelect then skillSelect.Visible = false end
+    if resultScreen then resultScreen.Visible = false end
+    if shopScreen then shopScreen.Visible = false end
+end
+
+-- 操作説明の表示切り替え
+local function toggleControls()
+    if controlsOverlay then
+        controlsOverlay.Visible = not controlsOverlay.Visible
+    end
 end
 
 local function disableMovement()
@@ -73,7 +150,16 @@ if player.Character then onCharacterAdded(player.Character) end
 StartBattle.OnClientEvent:Connect(function()
     canAct = false
     tutorialMode = false
+    inBattle = true
+    isPaused = false
+    if pauseFrame then pauseFrame.Visible = false end
     disableMovement()
+end)
+
+EndBattle.OnClientEvent:Connect(function()
+    inBattle = false
+    isPaused = false
+    if pauseFrame then pauseFrame.Visible = false end
 end)
 
 Countdown.OnClientEvent:Connect(function()
@@ -320,8 +406,24 @@ local function skill()
 end
 
 UserInputService.InputBegan:Connect(function(input, gp)
+    -- ESCキーは常に処理（一時停止用）
+    if input.KeyCode == Enum.KeyCode.Escape then
+        togglePause()
+        return
+    end
+
+    -- Hキーは常に処理（操作説明表示用）
+    if input.KeyCode == Enum.KeyCode.H then
+        toggleControls()
+        return
+    end
+
     if gp then return end
     keysDown[input.KeyCode] = true
+
+    -- 一時停止中はアクション不可
+    if isPaused then return end
+
     if input.KeyCode == Enum.KeyCode.F then attack()
     elseif input.KeyCode == Enum.KeyCode.LeftShift then guardStart()
     elseif input.KeyCode == Enum.KeyCode.Q then dodge("Left")
@@ -355,4 +457,18 @@ RunService.RenderStepped:Connect(function()
     cam.CFrame = CFrame.new(root.Position + offset, root.Position + Vector3.new(0,2,0))
 end)
 
-print("PlayerController READY (tutorial mode + effects)")
+-- ポーズメニューのボタン接続
+if pauseFrame then
+    local resumeBtn = pauseFrame:FindFirstChild("ResumeButton")
+    local titleBtn = pauseFrame:FindFirstChild("TitleButton")
+
+    if resumeBtn then
+        resumeBtn.MouseButton1Click:Connect(resumeGame)
+    end
+
+    if titleBtn then
+        titleBtn.MouseButton1Click:Connect(goToTitle)
+    end
+end
+
+print("PlayerController READY (tutorial mode + effects + pause)")
