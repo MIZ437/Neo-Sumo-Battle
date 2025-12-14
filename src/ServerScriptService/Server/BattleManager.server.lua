@@ -93,16 +93,29 @@ local function startBattle(player, stage)
     data.State.InBattle = true
     data.Stats.SP = 0
 
+    -- キャラクターをリスポーン位置に移動
     local char = player.Character
-    if char then
-        local root = char:FindFirstChild("HumanoidRootPart")
-        local hum = char:FindFirstChild("Humanoid")
-        if root then
-            local spawn = Arena:FindFirstChild("PlayerSpawn")
-            if spawn then root.CFrame = CFrame.new(spawn.Position + Vector3.new(0,3,0)) end
-            root.Velocity = Vector3.zero
-        end
-        if hum then hum.Health = hum.MaxHealth end
+    if not char then
+        player:LoadCharacter()
+        char = player.CharacterAdded:Wait()
+    end
+
+    local root = char:WaitForChild("HumanoidRootPart", 5)
+    local hum = char:WaitForChild("Humanoid", 5)
+
+    if root then
+        local spawn = Arena:FindFirstChild("PlayerSpawn")
+        local spawnPosition = spawn and spawn.Position or Vector3.new(-10, 10, 0)
+        -- 確実にスポーン位置に配置
+        root.CFrame = CFrame.new(spawnPosition + Vector3.new(0, 3, 0))
+        -- 速度をリセット
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
+        print("Player spawned at:", spawnPosition)
+    end
+
+    if hum then
+        hum.Health = hum.MaxHealth
     end
 
     clearEnemies()
