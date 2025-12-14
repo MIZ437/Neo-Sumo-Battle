@@ -128,7 +128,7 @@ skillSelect:WaitForChild("BackButton").MouseButton1Click:Connect(function() show
 shopScreen:WaitForChild("BackButton").MouseButton1Click:Connect(function() showScreen("Home"); updateHomeUI() end)
 
 local cards = shopScreen:WaitForChild("CardsContainer")
-for _, stat in ipairs({"HP", "Power", "Stability", "Speed"}) do
+for _, stat in ipairs({"HP", "Power", "Stability", "Speed", "Guard", "Stamina", "Jump"}) do
     local card = cards:FindFirstChild(stat .. "Card")
     if card then
         local btn = card:FindFirstChild("UpgradeButton")

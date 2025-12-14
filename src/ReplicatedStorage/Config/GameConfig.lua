@@ -79,6 +79,30 @@ GameConfig.Upgrades = {
 		costIncrease = 75,
 		maxLevel = 5,
 	},
+	Guard = {
+		name = "ガード強化",
+		icon = "shield2",
+		effect = 0.05,         -- ガード軽減率+5%
+		baseCost = 120,
+		costIncrease = 60,
+		maxLevel = 8,
+	},
+	Stamina = {
+		name = "スタミナ強化",
+		icon = "energy",
+		effect = 10,           -- 最大スタミナ+10
+		baseCost = 80,
+		costIncrease = 40,
+		maxLevel = 10,
+	},
+	Jump = {
+		name = "ジャンプ強化",
+		icon = "arrow_up",
+		effect = 5,            -- ジャンプ力+5
+		baseCost = 100,
+		costIncrease = 50,
+		maxLevel = 5,
+	},
 }
 
 -- 強化コスト計算

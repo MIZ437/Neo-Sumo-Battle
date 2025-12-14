@@ -17,32 +17,32 @@ local CONFIG = {
 -- 現在のクリスタル
 local activeCrystals = {}
 
--- クリスタル作成（超豪華版）
+-- クリスタル作成（超巨大豪華版）
 local function createCrystal(position)
-	-- メインクリスタル
+	-- メインクリスタル（巨大）
 	local crystal = Instance.new("Part")
 	crystal.Name = "FieldCrystal"
-	crystal.Size = Vector3.new(4, 6, 4)
+	crystal.Size = Vector3.new(8, 12, 8)
 	crystal.Position = position
 	crystal.Anchored = true
 	crystal.CanCollide = false
 	crystal.Material = Enum.Material.Glass
 	crystal.Color = Color3.fromRGB(50, 180, 255)
-	crystal.Transparency = 0.2
-	crystal.Reflectance = 0.5
+	crystal.Transparency = 0.15
+	crystal.Reflectance = 0.6
 	crystal.Parent = Arena
 
-	-- ダイヤ形状（メッシュ）- 大きく
+	-- ダイヤ形状（メッシュ）- 超大きく
 	local mesh = Instance.new("SpecialMesh")
 	mesh.MeshType = Enum.MeshType.FileMesh
 	mesh.MeshId = "rbxassetid://9756362"
-	mesh.Scale = Vector3.new(3, 4.5, 3)
+	mesh.Scale = Vector3.new(6, 9, 6)
 	mesh.Parent = crystal
 
-	-- 内側の光るコア
+	-- 内側の光るコア（大きく）
 	local core = Instance.new("Part")
 	core.Name = "Core"
-	core.Size = Vector3.new(1.5, 2.5, 1.5)
+	core.Size = Vector3.new(3, 5, 3)
 	core.Position = position
 	core.Anchored = true
 	core.CanCollide = false
@@ -53,7 +53,7 @@ local function createCrystal(position)
 	local coreMesh = Instance.new("SpecialMesh")
 	coreMesh.MeshType = Enum.MeshType.FileMesh
 	coreMesh.MeshId = "rbxassetid://9756362"
-	coreMesh.Scale = Vector3.new(1, 1.5, 1)
+	coreMesh.Scale = Vector3.new(2, 3, 2)
 	coreMesh.Parent = core
 
 	-- メインライト（非常に明るく）
@@ -120,34 +120,47 @@ local function createCrystal(position)
 	stars.RotSpeed = NumberRange.new(-90, 90)
 	stars.Parent = crystal
 
-	-- 光の柱（複数）
+	-- 光の柱（複数、巨大）
 	for i = 1, 3 do
 		local beam = Instance.new("Part")
 		beam.Name = "LightBeam" .. i
-		beam.Size = Vector3.new(0.3 + i * 0.2, 50, 0.3 + i * 0.2)
-		beam.Position = position + Vector3.new(0, 25, 0)
+		beam.Size = Vector3.new(0.5 + i * 0.4, 80, 0.5 + i * 0.4)
+		beam.Position = position + Vector3.new(0, 40, 0)
 		beam.Anchored = true
 		beam.CanCollide = false
 		beam.Material = Enum.Material.Neon
 		beam.Color = i == 1 and Color3.fromRGB(100, 200, 255) or
 					  i == 2 and Color3.fromRGB(255, 100, 255) or
 					  Color3.fromRGB(100, 255, 200)
-		beam.Transparency = 0.6 + i * 0.1
+		beam.Transparency = 0.5 + i * 0.1
 		beam.Parent = crystal
 	end
 
-	-- 地面のリング
+	-- 地面のリング（大きく）
 	local ring = Instance.new("Part")
 	ring.Name = "GroundRing"
 	ring.Shape = Enum.PartType.Cylinder
-	ring.Size = Vector3.new(0.2, 8, 8)
-	ring.CFrame = CFrame.new(position.X, position.Y - 2, position.Z) * CFrame.Angles(0, 0, math.rad(90))
+	ring.Size = Vector3.new(0.3, 16, 16)
+	ring.CFrame = CFrame.new(position.X, position.Y - 4, position.Z) * CFrame.Angles(0, 0, math.rad(90))
 	ring.Anchored = true
 	ring.CanCollide = false
 	ring.Material = Enum.Material.Neon
 	ring.Color = Color3.fromRGB(100, 200, 255)
-	ring.Transparency = 0.5
+	ring.Transparency = 0.4
 	ring.Parent = crystal
+
+	-- 外側のリング
+	local outerRing = Instance.new("Part")
+	outerRing.Name = "OuterRing"
+	outerRing.Shape = Enum.PartType.Cylinder
+	outerRing.Size = Vector3.new(0.2, 24, 24)
+	outerRing.CFrame = CFrame.new(position.X, position.Y - 4, position.Z) * CFrame.Angles(0, 0, math.rad(90))
+	outerRing.Anchored = true
+	outerRing.CanCollide = false
+	outerRing.Material = Enum.Material.Neon
+	outerRing.Color = Color3.fromRGB(255, 100, 255)
+	outerRing.Transparency = 0.6
+	outerRing.Parent = crystal
 
 	-- 回転アニメーション
 	local rotationValue = Instance.new("NumberValue")

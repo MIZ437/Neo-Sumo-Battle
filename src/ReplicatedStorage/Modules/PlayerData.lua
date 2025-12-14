@@ -26,6 +26,9 @@ function PlayerData.new(player)
 		Power = 0,
 		Stability = 0,
 		Speed = 0,
+		Guard = 0,
+		Stamina = 0,
+		Jump = 0,
 	}
 
 	self.Stats = {
@@ -81,17 +84,20 @@ function PlayerData:ApplyLevelStats()
 	local powerUpgrade = self.Upgrades.Power * GameConfig.Upgrades.Power.effect
 	local stabilityUpgrade = self.Upgrades.Stability * GameConfig.Upgrades.Stability.effect
 	local speedUpgrade = self.Upgrades.Speed * GameConfig.Upgrades.Speed.effect
+	local guardUpgrade = self.Upgrades.Guard * GameConfig.Upgrades.Guard.effect
+	local staminaUpgrade = self.Upgrades.Stamina * GameConfig.Upgrades.Stamina.effect
+	local jumpUpgrade = self.Upgrades.Jump * GameConfig.Upgrades.Jump.effect
 
 	self.Stats.MaxHP = baseStats.HP + (levelBonus * 5) + hpUpgrade
 	self.Stats.HP = self.Stats.MaxHP
 	self.Stats.Power = baseStats.Power + levelBonus + powerUpgrade
 	self.Stats.Stability = baseStats.Stability + levelBonus + stabilityUpgrade
 	self.Stats.Speed = baseStats.Speed + speedUpgrade
-	self.Stats.Jump = baseStats.Jump
-	self.Stats.Guard = baseStats.Guard
-	self.Stats.MaxStamina = baseStats.Stamina
+	self.Stats.Jump = baseStats.Jump + jumpUpgrade
+	self.Stats.Guard = baseStats.Guard + guardUpgrade
+	self.Stats.MaxStamina = baseStats.Stamina + staminaUpgrade
 	self.Stats.Stamina = self.Stats.MaxStamina
-	self.Stats.MaxSP = baseStats.SP
+	self.Stats.MaxSP = baseStats.MaxSP
 	self.Stats.SP = 0
 end
 
