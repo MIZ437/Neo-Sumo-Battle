@@ -46,6 +46,7 @@ local stageLabel = safeFind(resultFrame, "StageLabel")
 local rewardsFrame = safeFind(resultFrame, "RewardsFrame")
 local expLabel = safeFind(rewardsFrame, "ExpLabel")
 local coinsLabel = safeFind(rewardsFrame, "CoinsLabel")
+local crystalLabel = safeFind(rewardsFrame, "CrystalLabel")
 local buttonsFrame = safeFind(resultFrame, "ButtonsFrame")
 local primaryButton = safeFind(buttonsFrame, "PrimaryButton")
 local shopButton = safeFind(buttonsFrame, "ShopButton")
@@ -135,9 +136,10 @@ EndBattle.OnClientEvent:Connect(function(data)
         end
     end
 
-    local rewards = data.rewards or {exp = 0, coins = 0}
+    local rewards = data.rewards or {exp = 0, coins = 0, crystals = 0}
     if expLabel then expLabel.Text = "EXP: +" .. rewards.exp end
     if coinsLabel then coinsLabel.Text = "コイン: +" .. rewards.coins end
+    if crystalLabel then crystalLabel.Text = "💎 クリスタル: +" .. (rewards.crystals or 0) end
 
     -- GAME OVER GUIがあれば削除
     local gameOverGui = playerGui:FindFirstChild("GameOverGui")

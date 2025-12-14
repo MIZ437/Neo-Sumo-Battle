@@ -46,10 +46,21 @@ local function endBattle(player, winner, reason)
     if battle.enemyAI then battle.enemyAI.Active = false end
 
     local data = PlayerData.Get(player)
-    local rewards = {exp = 0, coins = 0}
+    local rewards = {exp = 0, coins = 0, crystals = 0}
+
+    -- 獲得クリスタル数を取得
+    local crystalsEarned = 0
+    if data and data.Crystals then
+        crystalsEarned = data.Crystals
+        data.Crystals = 0 -- リセット
+    end
+    rewards.crystals = crystalsEarned
+
     if winner == "player" then
         rewards.exp = battle.stage * 20
         rewards.coins = battle.stage * 15
+        -- 勝利ボーナスクリスタル
+        rewards.crystals = rewards.crystals + math.floor(battle.stage / 2)
         if data and battle.stage > data.MaxStageCleared then
             data.MaxStageCleared = battle.stage
         end
@@ -61,6 +72,7 @@ local function endBattle(player, winner, reason)
         data.State.InBattle = false
         data:AddExp(rewards.exp)
         data.Coins = data.Coins + rewards.coins
+        data.TotalCrystals = (data.TotalCrystals or 0) + rewards.crystals
     end
 
     EndBattle:FireClient(player, {
